@@ -57,6 +57,7 @@ class Pest {
     $headers[] = 'Content-Length: '.strlen($data);
     $curl_opts[CURLOPT_HTTPHEADER] = $headers;
     $curl_opts[CURLOPT_POSTFIELDS] = $data;
+    $curl_opts[CURLOPT_HEADER] = true;
     
     $curl = $this->prepRequest($curl_opts, $url);
     $body = $this->doRequest($curl);
