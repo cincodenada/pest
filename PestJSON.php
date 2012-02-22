@@ -25,17 +25,32 @@ require_once 'Pest.php';
  */
 class PestJSON extends Pest
 {
-  public function post($url, $data, $headers=array()) {
-    return parent::post($url, json_encode($data), $headers);
+  /**
+   * upload_json 
+   * A toggle that determines whether or not POST or PUT data
+   * is submitted in JSON format
+   * 
+   * @var bool
+   * @access public
+   */
+  public $upload_json = true;
+
+	public function post($url, $data, $headers=array()) {
+    $data = $this->upload_json ? json_encode($data) : $data;
+    return parent::post($url, $data, $headers);
   }
   
   public function put($url, $data, $headers=array()) {
-    return parent::put($url, json_encode($data), $headers);
+    $data = $this->upload_json ? json_encode($data) : $data;
+    return parent::put($url, $data, $headers);
   }
 
   protected function prepRequest($opts, $url) {
-    $opts[CURLOPT_HTTPHEADER][] = 'Accept: application/json';
-    $opts[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
+    if($this->upload_json) {
+      $opts[CURLOPT_HTTPHEADER][] = 'Accept: application/json';
+      $opts[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
+    }
+
     return parent::prepRequest($opts, $url);
   }
 

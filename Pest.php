@@ -14,6 +14,7 @@ class Pest {
   	CURLOPT_SSL_VERIFYPEER => false, // stop cURL from verifying the peer's certificate
   	CURLOPT_FOLLOWLOCATION => true,  // follow redirects, Location: headers
   	CURLOPT_MAXREDIRS      => 10     // but dont redirect more than 10 times
+    CURLOPT_HEADER         => true
   );
 
   public $base_url;
@@ -37,9 +38,14 @@ class Pest {
     $this->curl_opts[CURLOPT_USERPWD] = $user . ":" . $pass;
   }
   
-  public function get($url, $params=array()) {
-    $params = (is_array($params)) ? http_build_query($params) : $params;
-    $url = $url.'?'.$params;
+  public function get($url, $data = array()) {
+    if(!empty($data)) {
+      $data = (is_array($data)) ? http_build_query($data) : $data;
+
+      //Allow adding params to any existing params
+      $sepchar = (strpos($url, '?') === FALSE) ? '?' : '&';
+      $url = $url.$sepchar.$data;
+    }
 
     $curl = $this->prepRequest($this->curl_opts, $url);
     $body = $this->doRequest($curl);
@@ -57,7 +63,6 @@ class Pest {
     $headers[] = 'Content-Length: '.strlen($data);
     $curl_opts[CURLOPT_HTTPHEADER] = $headers;
     $curl_opts[CURLOPT_POSTFIELDS] = $data;
-    $curl_opts[CURLOPT_HEADER] = true;
     
     $curl = $this->prepRequest($curl_opts, $url);
     $body = $this->doRequest($curl);
@@ -99,6 +104,10 @@ class Pest {
   public function lastBody() {
     return $this->last_response['body'];
   }
+
+  public function lastHeaders() {
+    return $this->last_response['headers'];
+  }
   
   public function lastStatus() {
     return $this->last_response['meta']['http_code'];
@@ -125,7 +134,7 @@ class Pest {
       $url = $this->base_url . $url;
     }
     $curl = curl_init($url);
-    
+
     foreach ($opts as $opt => $val)
       curl_setopt($curl, $opt, $val);
       
@@ -145,11 +154,14 @@ class Pest {
   }
   
   private function doRequest($curl) {
-    $body = curl_exec($curl);
+    $response = curl_exec($curl);
     $meta = curl_getinfo($curl);
+
+    list($header, $body) = explode("\r\n\r\n",$response,2);
     
     $this->last_response = array(
       'body' => $body,
+      'header' => $header,
       'meta' => $meta
     );
     
