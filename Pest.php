@@ -157,7 +157,9 @@ class Pest {
     $response = curl_exec($curl);
     $meta = curl_getinfo($curl);
 
-    list($header, $body) = explode("\r\n\r\n",$response,2);
+    $parts = explode("\r\n\r\n",$response,2);
+    $header = $parts[0];
+    $body = (count($parts) > 1) ? $parts[1] : '';
     
     $this->last_response = array(
       'body' => $body,
