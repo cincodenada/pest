@@ -18,6 +18,7 @@ class Pest {
   );
 
   public $base_url;
+  public $prepend_base_url = true;
   
   public $last_response;
   public $last_request;
@@ -36,6 +37,12 @@ class Pest {
   public function setupAuth($user, $pass, $auth = 'basic') {
     $this->curl_opts[CURLOPT_HTTPAUTH] = constant('CURLAUTH_'.strtoupper($auth));
     $this->curl_opts[CURLOPT_USERPWD] = $user . ":" . $pass;
+  }
+
+  public function setPrepend($newval = true) {
+      $oldval = $this->prepend_base_url;
+      $this->prepend_base_url = $newval;
+      return $oldval;
   }
   
   public function get($url, $data = array()) {
@@ -130,7 +137,7 @@ class Pest {
 
   
   protected function prepRequest($opts, $url) {
-    if (strncmp($url, $this->base_url, strlen($this->base_url)) != 0) {
+    if ($this->prepend_base_url && strncmp($url, $this->base_url, strlen($this->base_url)) != 0) {
       $url = $this->base_url . $url;
     }
     $curl = curl_init($url);
